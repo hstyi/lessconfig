@@ -1,7 +1,7 @@
 {
     "name": "lessconfig",
     "version": "0.0.1",
-    "private": true,
+    "license": "Apache-2.0",
     "type": "module",
     "scripts": {
         "dev": "wrangler d1 migrations apply DB --local --config wrangler.jsonc && vite",
