@@ -48,16 +48,16 @@ The console and application clients use the same versioned HTTP API. Project and
 ## Visual quick deploy
 
 1. Fork [lessconfig/lessconfig](https://github.com/lessconfig/lessconfig/fork) into your GitHub account.
-2. Open [Cloudflare Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers-and-pages) and create a Worker connected to your fork.
+2. Open [Cloudflare Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers-and-pages/create) and create a Worker connected to your fork.
 3. Use `lessconfig` as the Worker name, or update `name` in `wrangler.jsonc` to match your chosen name.
-4. Configure the build settings below and deploy.
+4. Set the **Deploy command** to `npm run deploy`, leave the **Build command** empty, and deploy.
 5. Wait for the complete deployment, including database migrations, then open the generated Workers URL.
 
-| Setting        | Value                                              |
-| -------------- | -------------------------------------------------- |
-| Root directory | Repository root                                    |
-| Build command  | Leave empty; `yarn deploy` includes the build step |
-| Deploy command | `yarn deploy`                                      |
+| Setting        | Value                                                 |
+| -------------- | ----------------------------------------------------- |
+| Root directory | Repository root                                       |
+| Build command  | Leave empty; `npm run deploy` includes the build step |
+| Deploy command | `npm run deploy`                                      |
 
 The deployment token needs permission to deploy Workers and edit D1 and Workers KV resources in the target account. See [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) for build settings and token configuration.
 
@@ -82,18 +82,18 @@ No `JWT_SECRET` or application signing key is required.
 
 ## CLI deploy
 
-Use Node.js 24 and Yarn 1.22 for the commands below.
+Use Node.js 24 and npm for the commands below.
 
 ```sh
 git clone https://github.com/lessconfig/lessconfig.git
 cd lessconfig
 
-yarn install --frozen-lockfile
-yarn wrangler login
-yarn deploy
+npm ci
+npx wrangler login
+npm run deploy
 ```
 
-`yarn deploy` builds the frontend and Worker, deploys them, and applies the remote D1 migrations. It initializes the administrator on first deployment; subsequent migrations do not reset an existing password.
+`npm run deploy` builds the frontend and Worker, deploys them, and applies the remote D1 migrations. It initializes the administrator on first deployment; subsequent migrations do not reset an existing password.
 
 To use a custom domain, add it under your Worker's **Settings → Domains & Routes** in the Cloudflare dashboard.
 
@@ -193,8 +193,8 @@ For a CLI deployment:
 
 ```sh
 git pull --ff-only
-yarn install --frozen-lockfile
-yarn deploy
+npm ci
+npm run deploy
 ```
 
 Keep the Worker and resource bindings associated with your existing deployment. Export your configuration before an upgrade and review any release-specific migration instructions.
@@ -202,23 +202,23 @@ Keep the Worker and resource bindings associated with your existing deployment. 
 ## Local development
 
 ```sh
-yarn install --frozen-lockfile
-yarn dev
+npm ci
+npm run dev
 ```
 
 Open the URL printed by Vite, normally `http://localhost:5173`. The development command applies local D1 migrations before starting the app. D1, KV, and Durable Objects use local storage under `.wrangler/state`; cloud credentials are not required for the default local setup.
 
-| Command             | Purpose                                                        |
-| ------------------- | -------------------------------------------------------------- |
-| `yarn build`        | Type-check and build the frontend and Worker.                  |
-| `yarn typecheck`    | Check application and test TypeScript types.                   |
-| `yarn lint`         | Run Oxlint.                                                    |
-| `yarn format:check` | Check formatting with Oxfmt.                                   |
-| `yarn test`         | Run Worker integration tests with Vitest.                      |
-| `yarn test:ui`      | Build and run Playwright tests for desktop and mobile layouts. |
-| `yarn cf-typegen`   | Regenerate Worker types after changing bindings.               |
+| Command                | Purpose                                                        |
+| ---------------------- | -------------------------------------------------------------- |
+| `npm run build`        | Type-check and build the frontend and Worker.                  |
+| `npm run typecheck`    | Check application and test TypeScript types.                   |
+| `npm run lint`         | Run Oxlint.                                                    |
+| `npm run format:check` | Check formatting with Oxfmt.                                   |
+| `npm run test`         | Run Worker integration tests with Vitest.                      |
+| `npm run test:ui`      | Build and run Playwright tests for desktop and mobile layouts. |
+| `npm run cf-typegen`   | Regenerate Worker types after changing bindings.               |
 
-Before running UI tests for the first time, install the browser with `yarn playwright install chromium`.
+Before running UI tests for the first time, install the browser with `npx playwright install chromium`.
 
 ---
 
