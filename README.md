@@ -189,6 +189,10 @@ Projects, environments, and configuration values. Passwords, login sessions, API
 
 ## How to update
 
+The console directly checks the latest stable release from `lessconfig/lessconfig` on GitHub when the signed-in layout loads. Results are not cached; refreshing the page checks again. When its `x.y.z` tag is newer than the deployed version, a **New version** button appears beside the account menu. Open it to read the release notes and follow the link to that release. This is a notification only; updates are deployed manually.
+
+The deployed version comes from `package.json` at build time. Before publishing a release, set its `version` to match the release tag (for example, `1.2.3`), commit the change, and build from that commit. Drafts, prereleases, and tags outside the `x.y.z` format are ignored. Failed GitHub checks do not interrupt the console.
+
 For a GitHub-connected deployment, sync your fork with the upstream repository and let Workers Builds deploy the updated branch.
 
 For a CLI deployment:

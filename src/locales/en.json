@@ -342,5 +342,14 @@
     "Importing workspace…": "Importing workspace…",
     "Exporting workspace…": "Exporting workspace…",
     "Invalid workspace file. Check the format and required fields.": "Invalid workspace file. Check the format and required fields.",
-    "The file contains duplicate project, environment, or configuration identifiers.": "The file contains duplicate project, environment, or configuration identifiers."
+    "The file contains duplicate project, environment, or configuration identifiers.": "The file contains duplicate project, environment, or configuration identifiers.",
+    "Update available": "Update available",
+    "New version": "New version",
+    "New version {{version}}": "New version {{version}}",
+    "New version available": "New version available",
+    "Version update": "Current version: {{current}} · Latest version: {{latest}}",
+    "Release notes": "Release notes",
+    "Loading release notes…": "Loading release notes…",
+    "No release notes provided.": "No release notes provided.",
+    "View release": "View release"
 }

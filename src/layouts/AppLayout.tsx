@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Sidebar } from '@cloudflare/kumo/components/sidebar';
 import { SlidersHorizontalIcon } from '@phosphor-icons/react';
 import { AccountMenu } from '../components/AccountMenu';
+import { ReleaseUpdate } from '../components/ReleaseUpdate';
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar';
 import { ResourceSwitcher } from '../components/ResourceSwitcher';
 import { useWorkspace } from '../hooks/useWorkspace';
@@ -59,7 +60,8 @@ export function AppLayout() {
                             </div>
                         )}
                     </div>
-                    <div className="flex shrink-0 items-center">
+                    <div className="flex shrink-0 items-center gap-1">
+                        <ReleaseUpdate />
                         <AccountMenu />
                     </div>
                 </header>
