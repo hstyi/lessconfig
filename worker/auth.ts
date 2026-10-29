@@ -196,6 +196,10 @@ export async function login(request: Request, env: Env) {
 
 /** Replace the password atomically and revoke the user's sessions without revoking API tokens. */
 export async function changePassword(request: Request, env: Env, userId: number) {
+    if (env.DISABLE_PASSWORD_CHANGE === 'true') {
+        fail(403, 'password_change_disabled', 'Password changes are disabled for this deployment.');
+    }
+
     const data = await body(request);
     const current = text(data.currentPassword, 'Current password', 256);
     const next = text(data.newPassword, 'New password', 256);

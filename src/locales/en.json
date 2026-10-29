@@ -149,6 +149,7 @@
     "Sign in": "Sign in",
     "One administrator. All configuration accessible through the API.": "One administrator. All configuration accessible through the API.",
     "The new passwords do not match.": "The new passwords do not match.",
+    "Password changes are disabled for this deployment.": "Password changes are disabled for this deployment.",
     "Manage the administrator account and workspace preferences.": "Manage the administrator account and workspace preferences.",
     "Administrator account": "Administrator account",
     "This is the only account in this workspace and has full access.": "This is the only account in this workspace and has full access.",

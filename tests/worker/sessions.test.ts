@@ -1,7 +1,9 @@
 import { expect, test } from 'vitest';
 import { env, exports } from 'cloudflare:workers';
+import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { digest, randomToken } from '../../worker/credentials';
 import { SESSION_LIFETIME } from '../../worker/session';
+import worker from '../../worker/index';
 
 const origin = 'https://lessconfig.test/api/v1';
 
@@ -38,6 +40,35 @@ async function account() {
     };
 
     return { ...row!, username, login };
+}
+
+/** Exercise the real Worker with a deployment-specific password policy. */
+async function passwordRequest(
+    token: string,
+    flag: string | undefined,
+    body = JSON.stringify({ currentPassword: 'admin', newPassword: 'new-session-password' }),
+) {
+    const bindings = { ...env };
+
+    if (flag === undefined) {
+        Reflect.deleteProperty(bindings, 'DISABLE_PASSWORD_CHANGE');
+    } else {
+        bindings.DISABLE_PASSWORD_CHANGE = flag;
+    }
+
+    const context = createExecutionContext();
+    const response = await worker.fetch(
+        new Request(`${origin}/auth/password`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body,
+        }),
+        bindings,
+        context,
+    );
+
+    await waitOnExecutionContext(context);
+    return response;
 }
 
 test('stores independent opaque sessions in KV under credential hashes with seven-day expiration', async () => {
@@ -121,6 +152,43 @@ test('password changes reject every old session even while its KV record remains
     expect((await request('/auth/me', first.token)).status).toBe(401);
     expect((await request('/auth/me', second.token)).status).toBe(401);
     expect((await request('/auth/login', undefined, 'POST', { username: user.username, password: 'admin' })).status).toBe(401);
+    const fresh = await user.login('new-session-password');
+    expect((await request('/auth/me', fresh.token)).status).toBe(200);
+});
+
+test('a disabled password policy rejects requests before validation and preserves credentials and sessions', async () => {
+    const user = await account();
+    const first = await user.login();
+    const second = await user.login();
+    const before = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
+    const key = `session:${await digest(first.token)}`;
+    const session = await env.SESSIONS.get(key);
+
+    for (const body of [JSON.stringify({ currentPassword: 'admin', newPassword: 'new-session-password' }), '{invalid-json']) {
+        const response = await passwordRequest(first.token, 'true', body);
+
+        expect(response.status).toBe(403);
+        expect(await response.json()).toEqual({
+            code: 'password_change_disabled',
+            message: 'Password changes are disabled for this deployment.',
+        });
+        expect(response.headers.get('Set-Cookie')).toBeNull();
+    }
+
+    expect(await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first()).toEqual(before);
+    expect(await env.SESSIONS.get(key)).toBe(session);
+    expect((await request('/auth/me', first.token)).status).toBe(200);
+    expect((await request('/auth/me', second.token)).status).toBe(200);
+});
+
+test.each([undefined, 'false'])('allows password changes when DISABLE_PASSWORD_CHANGE is %s', async (flag) => {
+    const user = await account();
+    const session = await user.login();
+    const response = await passwordRequest(session.token, flag);
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('');
+    expect((await request('/auth/me', session.token)).status).toBe(401);
     const fresh = await user.login('new-session-password');
     expect((await request('/auth/me', fresh.token)).status).toBe(200);
 });
