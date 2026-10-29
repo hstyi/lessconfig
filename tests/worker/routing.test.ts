@@ -66,10 +66,21 @@ test('resolves encoded named parameters without confusing nested resources', asy
     expect(created.status).toBe(201);
     await created.arrayBuffer();
 
-    const raw = await request(`${base}/configurations/application.yml/raw`);
+    for (const [query, disposition] of [
+        ['', 'inline'],
+        ['?download=1', 'attachment'],
+        ['?download=0', 'inline'],
+    ]) {
+        const raw = await request(`${base}/configurations/application.yml/raw${query}`);
 
-    expect(raw.headers.get('Content-Type')).toContain('application/yaml');
-    expect(new TextDecoder().decode(await raw.arrayBuffer())).toBe('enabled: YES\n');
+        expect(raw.status).toBe(200);
+        expect(raw.headers.get('Content-Type')).toContain('application/yaml');
+        expect(raw.headers.get('Content-Disposition')).toBe(`${disposition}; filename="application.yml"`);
+        expect(raw.headers.get('Cache-Control')).toBe('no-store');
+        expect(raw.headers.get('X-Content-Type-Options')).toBe('nosniff');
+        expect(raw.headers.get('ETag')).toBe(created.headers.get('ETag'));
+        expect(new TextDecoder().decode(await raw.arrayBuffer())).toBe('enabled: YES\n');
+    }
 
     const oldCollection = await request(`${base}/configs`);
     const oldItem = await request(`${base}/configs/application.yml`);

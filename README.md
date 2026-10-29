@@ -122,6 +122,8 @@ curl "$LESSCONFIG_URL/api/v1/projects/my-app/environments/production/configurati
   -H "Authorization: Bearer $LESSCONFIG_TOKEN"
 ```
 
+The `/raw` endpoint returns `Content-Disposition: inline` by default. Append `?download=1` to return `attachment` and download the file with the configuration key as its filename.
+
 List responses use `{ "items": [...], "total": ... }` and return all records without pagination. API errors use `{ "code": "...", "message": "..." }`, with messages in English.
 
 ### Watch for changes

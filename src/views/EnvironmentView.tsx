@@ -39,6 +39,7 @@ import { ImportConfigsPopover } from '../components/ImportConfigsPopover';
 import { ConfigDiff } from '../components/ConfigDiff';
 import { HistoryList } from '../components/HistoryList';
 import { ConfigEditor } from '../components/ConfigEditor';
+import { CopyButton } from '../components/CopyButton';
 import { Empty } from '../components/Empty';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Modal } from '../components/Modal';
@@ -372,13 +373,7 @@ export function EnvironmentView({ project, environment, onChange }: { project: P
                                                     />
                                                 </td>
                                                 <td>
-                                                    <button
-                                                        className="flex items-center gap-2.5 text-left hover:text-kumo-link [&_svg]:shrink-0 [&_svg]:text-kumo-subtle"
-                                                        onClick={() => void edit(config)}
-                                                    >
-                                                        <FileCodeIcon size={18} />
-                                                        <span className="font-mono text-[0.9em]">{config.key}</span>
-                                                    </button>
+                                                    <CopyButton value={config.key} label={config.key} inline />
                                                 </td>
                                                 <td>
                                                     <span
@@ -403,7 +398,7 @@ export function EnvironmentView({ project, environment, onChange }: { project: P
                                                         <a
                                                             className="inline-flex size-8 items-center justify-center rounded text-kumo-subtle hover:bg-kumo-tint"
                                                             aria-label={t('Download {{value1}}', { value1: config.key })}
-                                                            href={`/api/v1${base}/configurations/${encodeURIComponent(config.key)}/raw`}
+                                                            href={`/api/v1${base}/configurations/${encodeURIComponent(config.key)}/raw?download=1`}
                                                         >
                                                             <DownloadSimpleIcon size={18} />
                                                         </a>
@@ -490,7 +485,7 @@ export function EnvironmentView({ project, environment, onChange }: { project: P
                         <Input
                             label={t('Configuration key')}
                             value={draft.key}
-                            disabled={draft.revision !== undefined}
+                            readOnly={draft.revision !== undefined}
                             placeholder={t('e.g. application.yml or feature.enabled')}
                             required
                             pattern={IDENTIFIER_PATTERN.source}

@@ -241,6 +241,51 @@ test('creates an explicit all-project token even before projects exist', async (
     expect(deleted.status()).toBe(401);
 });
 
+test('copies configuration keys with hover feedback and reports clipboard failures', async ({ context, page }, testInfo) => {
+    const { slug } = await seed(page, ['alpha', 'beta']);
+
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto(`/projects/${slug}/environments/prod`);
+    await chinese(page);
+
+    const alpha = page.getByRole('row').filter({ has: page.getByRole('button', { name: 'alpha', exact: true }) });
+    const beta = page.getByRole('row').filter({ has: page.getByRole('button', { name: 'beta', exact: true }) });
+    const tooltip = page.locator('.kumo-tooltip-popup');
+
+    await expect(tooltip).toHaveCount(0);
+    await alpha.getByRole('button', { name: 'alpha', exact: true }).hover();
+    await expect(tooltip).toHaveText('复制');
+    await page.screenshot({ path: testInfo.outputPath('copy-key-hover.png'), animations: 'disabled' });
+    await alpha.getByRole('button', { name: 'alpha', exact: true }).click();
+    await expect(tooltip.getByRole('status')).toHaveText('已复制');
+    await expect(tooltip.locator('svg').last()).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('copy-key-copied.png'), animations: 'disabled' });
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('alpha');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.mouse.move(0, 0);
+    await expect(tooltip).toHaveCount(0);
+    await alpha.getByRole('button', { name: 'alpha', exact: true }).hover();
+    await expect(tooltip).toHaveText('复制');
+    await page.mouse.move(0, 0);
+    await expect(tooltip).toHaveCount(0);
+    await beta.getByRole('button', { name: 'beta', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(tooltip.getByRole('status')).toHaveText('已复制');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('beta');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    await page.evaluate(() => {
+        navigator.clipboard.writeText = async () => {
+            throw new DOMException('Clipboard access denied', 'NotAllowedError');
+        };
+    });
+    await alpha.getByRole('button', { name: 'alpha', exact: true }).click();
+    await expect(tooltip).toHaveCount(1);
+    await expect(tooltip.getByRole('status')).toHaveText('复制失败，请手动复制');
+    await page.getByRole('button', { name: '编辑 alpha', exact: true }).click();
+    await expect(page.getByRole('dialog').getByLabel('配置内容', { exact: true })).toContainText('original');
+});
+
 test('shows an existing-configuration error and keeps creation order after editing', async ({ page }) => {
     const { slug, base } = await seed(page, ['z-first', 'a-second']);
 
@@ -270,7 +315,7 @@ test('shows an existing-configuration error and keeps creation order after editi
     expect(await failure.json()).toMatchObject({ code: 'config_already_exists' });
     await expect(dialog.getByRole('alert')).toHaveText('配置已存在。');
     await dialog.getByRole('button', { name: '取消', exact: true }).click();
-    await page.getByRole('button', { name: 'z-first', exact: true }).click();
+    await page.getByRole('button', { name: '编辑 z-first', exact: true }).click();
     await dialog.getByLabel('配置内容', { exact: true }).fill('edited');
     await dialog.getByRole('button', { name: '保存配置', exact: true }).click();
     await expect(dialog).toHaveCount(0);
@@ -291,7 +336,7 @@ test('edits boolean literals without enablement or revision labels', async ({ pa
 
     await page.goto(`/projects/${slug}/environments/prod`);
     await chinese(page);
-    await page.getByRole('button', { name: 'feature.enabled', exact: true }).click();
+    await page.getByRole('button', { name: '编辑 feature.enabled', exact: true }).click();
 
     const dialog = page.getByRole('dialog');
     const boolean = dialog.getByRole('combobox', { name: '布尔值', exact: true });
@@ -493,6 +538,12 @@ test('exports the complete environment and imports with safe overwrites', async 
     await dialog.getByRole('button', { name: 'Import', exact: true }).click();
     await expect(dialog).not.toBeVisible();
     await expect(page.getByText('Imported 2 configuration entries.', { exact: true })).toBeVisible();
+    await expect(region.getByRole('button', { name: 'alpha', exact: true })).toBeVisible();
+    const configurationDownload = page.waitForEvent('download');
+    await region.getByRole('link', { name: 'Download alpha', exact: true }).click();
+    const configurationFile = await configurationDownload;
+    expect(configurationFile.suggestedFilename()).toBe('alpha');
+    expect(await readFile((await configurationFile.path())!, 'utf8')).toBe(entries[0].value);
     await expect(region.getByRole('button', { name: 'alpha', exact: true })).toBeVisible();
     await region.getByRole('textbox', { name: 'Search configuration keys' }).fill('alpha');
     await expect(region.getByRole('row')).toHaveCount(2);

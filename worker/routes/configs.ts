@@ -99,7 +99,7 @@ routes.get('/:key/raw', async (c) => {
     return new Response(config.value, {
         headers: {
             'Content-Type': `${config.type === 'json' ? 'application/json' : config.type === 'yaml' ? 'application/yaml' : 'text/plain'}; charset=utf-8`,
-            'Content-Disposition': `inline; filename="${key}"`,
+            'Content-Disposition': `${c.req.query('download') === '1' ? 'attachment' : 'inline'}; filename="${key}"`,
             'Cache-Control': 'no-store',
             'X-Content-Type-Options': 'nosniff',
             ETag: `"${config.revision}"`,

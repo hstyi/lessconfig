@@ -433,7 +433,7 @@ test('edits JSON, YAML, and Properties with syntax highlighting', async ({ page 
 
         expect(response.status()).toBe(200);
         expect((await response.json()).value).toBe(example.value);
-        await page.getByRole('button', { name: example.key, exact: true }).click();
+        await page.getByRole('button', { name: `Edit ${example.key}`, exact: true }).click();
         await expect(dialog.getByRole('textbox', { name: 'Value', exact: true })).toContainText('你好');
         await expect(dialog.getByRole('textbox', { name: 'Value', exact: true })).toHaveCSS('padding-top', '0px');
         await expect(dialog.locator(example.token).first()).toBeVisible();
@@ -493,7 +493,7 @@ test('keeps line numbers visible when scrolling new and existing configuration',
         if (mode === 'new') {
             await dialog.getByRole('button', { name: 'Save configuration', exact: true }).click();
             await expect(dialog).toHaveCount(0);
-            await page.getByRole('button', { name: 'scrolling.txt', exact: true }).click();
+            await page.getByRole('button', { name: 'Edit scrolling.txt', exact: true }).click();
         }
     }
 
@@ -792,7 +792,7 @@ test('creates configuration, edits it, and displays its history', async ({ page 
     await dialog.getByLabel('Value', { exact: true }).fill('YES');
     await dialog.getByRole('button', { name: 'Save configuration' }).click();
     await expect(page.getByRole('button', { name: 'feature.enabled', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'feature.enabled', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit feature.enabled', exact: true }).click();
     dialog = page.getByRole('dialog');
     await expect(dialog.getByLabel('Value', { exact: true })).toHaveText('YES');
     await dialog.getByLabel('Value', { exact: true }).fill('NO');
