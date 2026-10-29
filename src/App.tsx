@@ -64,17 +64,15 @@ export default function App() {
         return () => window.removeEventListener('session-expired', expired);
     }, [initialize, expireSession]);
 
-    if (!ready || authError) {
+    if (!ready) {
+        return null;
+    }
+
+    if (authError) {
         return (
             <div className="flex min-h-dvh flex-col items-center justify-center gap-5 text-kumo-subtle">
-                {authError ? (
-                    <>
-                        <ErrorMessage error={authError} />
-                        <Button onClick={() => window.location.reload()}>{t('Reconnect')}</Button>
-                    </>
-                ) : (
-                    t('Connecting to your workspace…')
-                )}
+                <ErrorMessage error={authError} />
+                <Button onClick={() => window.location.reload()}>{t('Reconnect')}</Button>
             </div>
         );
     }
